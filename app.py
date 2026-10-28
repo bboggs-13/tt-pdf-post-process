@@ -8,10 +8,98 @@ import streamlit as st
 
 from caption_engine import CaptionJob, analyze_pdf, apply_captions, format_caption
 
-st.set_page_config(page_title="TT Site Visit Photo Captioner", page_icon="📷", layout="wide")
+st.set_page_config(page_title="TT Site Visit Photo Captioner", page_icon="📷", layout="centered")
+
+st.markdown(
+    """
+    <style>
+    :root {
+        --tt-olive: #8B9064;
+        --tt-terra-cotta: #D4451D;
+        --tt-cool-gray: #76767B;
+        --tt-ink: #343532;
+        --tt-warm-white: #FCFBF8;
+        --tt-soft-sand: #F3F1EA;
+    }
+    .stApp, [data-testid="stAppViewContainer"] {
+        background: var(--tt-warm-white);
+        color: var(--tt-cool-gray);
+    }
+    [data-testid="stHeader"] { background: transparent; }
+    .block-container {
+        max-width: 1050px;
+        padding-top: 2.6rem;
+        padding-bottom: 4rem;
+    }
+    .app-kicker {
+        color: var(--tt-olive);
+        font-size: 0.74rem;
+        font-weight: 700;
+        letter-spacing: 0.13em;
+        margin-bottom: 0.55rem;
+        text-transform: uppercase;
+    }
+    h1, h2, h3, h4 {
+        color: var(--tt-ink) !important;
+        letter-spacing: -0.025em;
+    }
+    h1 { font-weight: 650 !important; }
+    [data-testid="stCaptionContainer"],
+    [data-testid="stMarkdownContainer"] p,
+    label, small {
+        color: var(--tt-cool-gray);
+    }
+    [data-testid="stFileUploaderDropzone"] {
+        background: var(--tt-soft-sand);
+        border: 1px dashed var(--tt-olive);
+        border-radius: 14px;
+    }
+    [data-testid="stVerticalBlockBorderWrapper"] {
+        background: #FFFFFF;
+        border-color: rgba(139, 144, 100, 0.28) !important;
+        border-radius: 14px;
+    }
+    div[data-baseweb="input"] > div,
+    div[data-baseweb="select"] > div,
+    [data-testid="stTextInput"] input {
+        border-color: rgba(118, 118, 123, 0.30);
+        border-radius: 9px;
+        background-color: #FFFFFF;
+    }
+    div[data-baseweb="input"] > div:focus-within,
+    div[data-baseweb="select"] > div:focus-within {
+        border-color: var(--tt-olive);
+        box-shadow: 0 0 0 1px var(--tt-olive);
+    }
+    div.stButton > button[kind="primary"],
+    div.stDownloadButton > button[kind="primary"] {
+        background: var(--tt-terra-cotta);
+        border: 1px solid var(--tt-terra-cotta);
+        border-radius: 9px;
+        color: #FFFFFF;
+        font-weight: 600;
+        min-height: 2.75rem;
+        transition: background-color 0.15s ease, border-color 0.15s ease;
+    }
+    div.stButton > button[kind="primary"]:hover,
+    div.stDownloadButton > button[kind="primary"]:hover {
+        background: #B93B19;
+        border-color: #B93B19;
+        color: #FFFFFF;
+    }
+    [data-testid="stAlert"] { border-radius: 10px; }
+    hr { border-color: rgba(139, 144, 100, 0.28); }
+    @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { transition-duration: 0.01ms !important; }
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
 def invalidate_export():
     st.session_state.generated_pdf = None
+st.markdown('<div class="app-kicker">Thornton Tomasetti · Field Tools</div>', unsafe_allow_html=True)
 st.title("TT Site Visit Photo Captioner")
 st.caption("Add observation-linked captions to photographs in a post-processed TT report PDF.")
 st.info(
