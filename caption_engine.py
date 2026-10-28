@@ -258,7 +258,8 @@ def apply_captions(
     """Apply captions to photo-only locations and return (PDF bytes, warnings)."""
     doc = fitz.open(stream=pdf_bytes, filetype="pdf")
     warnings: list[str] = []
-    prepared = []
+    candidates = []
+    cannot_fit: list[CaptionJob] = []
 
     for job in jobs:
         if job.observation_type not in {"NCR", "GO"} or not job.observation_number.strip():
@@ -277,13 +278,31 @@ def apply_captions(
             continue
 
         box = fitz.Rect(job.caption_rect)
-        font_size = _fit_font_size(caption_text, box, max_font_size, min_font_size)
-        if font_size is None:
-            warnings.append(
-                f"Page {job.page_number}, photo {job.photo_number}: caption cannot fit before the next photo at {min_font_size:g} pt; original caption left unchanged."
-            )
+        fitting_size = _fit_font_size(caption_text, box, max_font_size, min_font_size)
+        if fitting_size is None:
+            cannot_fit.append(job)
             continue
-        prepared.append((job, caption_text, box, font_size))
+        candidates.append((job, caption_text, box, fitting_size))
+
+    prepared = []
+    if cannot_fit:
+        first = cannot_fit[0]
+        warnings.append(
+            f"At least one caption cannot fit in its available area at {min_font_size:g} pt "
+            f"(first: page {first.page_number}, photo {first.photo_number}); no generated captions "
+            "were applied so the export does not contain a mix of caption sizes."
+        )
+    elif candidates:
+        uniform_size = min(candidate[3] for candidate in candidates)
+        prepared = [
+            (job, caption_text, box, uniform_size)
+            for job, caption_text, box, _ in candidates
+        ]
+        if uniform_size < max_font_size:
+            warnings.append(
+                f"Font size reduced to {uniform_size:g} pt for all {len(prepared)} generated photo captions "
+                "to fit the tightest caption area."
+            )
 
     pages_with_redactions: set[int] = set()
     for job, caption_text, box, font_size in prepared:
@@ -309,8 +328,6 @@ def apply_captions(
         )
         if remaining < -0.01:
             warnings.append(f"Page {job.page_number}, photo {job.photo_number}: unexpected text-fit issue during export.")
-        elif font_size < max_font_size:
-            warnings.append(f"Page {job.page_number}, photo {job.photo_number}: font reduced to {font_size:g} pt to avoid the next photo row.")
 
     output = doc.tobytes(garbage=4, deflate=True)
     doc.close()
