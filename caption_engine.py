@@ -67,7 +67,7 @@ def parse_observation(text: str) -> tuple[str, str] | None:
 
 def format_caption(report_number: str, observation_type: str, observation_number: str,
                    photo_number: int, caption: str) -> str:
-    """Format exactly as REPORT.NCR/GO.OBS-PHOTO n: existing caption."""
+    """Format as REPORT.NCR/GO.OBS-n: existing caption (n is the photo number)."""
     kind = observation_type.upper().strip()
     if kind not in {"NCR", "GO"}:
         raise ValueError("Observation type must be NCR or GO")
@@ -78,7 +78,7 @@ def format_caption(report_number: str, observation_type: str, observation_number
     if not obs or not re.fullmatch(r"\d+", obs):
         raise ValueError("Observation number must be numeric")
     photo_text = clean_text(caption)
-    prefix = f"{report}.{kind}.{obs}-PHOTO {photo_number}:"
+    prefix = f"{report}.{kind}.{obs}-{photo_number}:"
     return f"{prefix} {photo_text}" if photo_text else prefix
 
 
@@ -225,7 +225,7 @@ def analyze_pdf(pdf_bytes: bytes) -> tuple[str, list[CaptionJob], list[str]]:
 
 def _existing_caption_without_prefix(caption: str) -> str:
     caption = clean_text(caption)
-    return re.sub(r"^\d+\.(?:NCR|GO)\.\d+-PHOTO\s+\d+\s*:\s*", "", caption, flags=re.I)
+    return re.sub(r"^\d+\.(?:NCR|GO)\.\d+-(?:PHOTO\s+)?\d+\s*:\s*", "", caption, flags=re.I)
 
 
 def _fit_font_size(text: str, rect: fitz.Rect, max_size: float, min_size: float) -> float | None:
